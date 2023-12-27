@@ -30,22 +30,11 @@ namespace DemoWF
 
         public void GetMaxID()
         {
-            //SqlConnection con = new SqlConnection();
-            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
-            //Initial Catalog=dbaugust;Integrated Security=True";
+            
 
             try
             {
-                //con.Open();
-                //SqlCommand cmd = new SqlCommand();
-                //cmd.CommandText = "select max(PatientId)+1 from patientfrm";
-                //cmd.Connection = con;
-                //object obj = cmd.ExecuteScalar();
-                //txtpid.Text = obj.ToString();
-                //con.Close();
-
-               // object MaxID = d.GetID("select max(PatientId)+1 from patientfrm");
-                //txtpid.Text = MaxID.ToString();
+               
                 d.isProCall= true;
                 d.ClearParameters();
                 d.AddParameters("action", "getmax");
@@ -68,25 +57,17 @@ namespace DemoWF
         private void btncancel_Click(object sender, EventArgs e)
         {
             ClearControl(txtpid, Controls);
-            // txtpadd.Clear();
-            //datetime.Value = DateTime.Now;
             txtpid.Focus();
             GetMaxID();
         }
 
         private void txtpid_Validating(object sender, CancelEventArgs e)
         {
-            //SqlConnection con = new SqlConnection();
-            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
-            //Initial Catalog=dbaugust;Integrated Security=True";
+           
 
             try
             {
-                //con.Open();
-                //SqlCommand cmd = new SqlCommand();
-                //cmd.CommandText = "select * from patientfrm where PatientId=" + txtpid.Text;
-                //cmd.Connection = con;
-                //SqlDataReader rdr = cmd.ExecuteReader();
+              
                 SqlDataReader rdr = d.GetReader("select * from patient_frm where PatientId="+txtpid.Text);
                 if (rdr != null && rdr.HasRows)
                 {
@@ -95,7 +76,6 @@ namespace DemoWF
                     txtpname.Text = rdr["P_Name"].ToString();
                     txtpage.Text = rdr["Age"].ToString();
                     cmbgender.Text = rdr["Gender"].ToString();
-                    //  IsAtLeastOneDiseaseChecked();
                     /*if (rdr["Malaria"].ToString() == "Y")
                     {
                         chkmalaria.Checked = true;
@@ -155,7 +135,6 @@ namespace DemoWF
                     datetime.Text = "";
 
                 }
-                //con.Close();
                 rdr.Close();
             }
             catch (Exception ex)
@@ -183,7 +162,6 @@ namespace DemoWF
             string covid = chkcovid.Checked ? "Y" : "N";
             string heart = chkheart.Checked ? "Y" : "N";
             string cold = chkcold.Checked ? "Y" : "N";
-            //DateTime datetime = DateTime.Now.Date;
             DateTime selectedDate = datetime.Value;
 
             d.isProCall = true;
@@ -201,50 +179,21 @@ namespace DemoWF
             d.AddParameters("DoctorsName", txtdrname.Text);
             d.AddParameters("VisitDate", selectedDate.ToString("yyyy-MM-dd"));
 
-
-            // string Query = "";
-            // Assigning the current date without the time
-
-
-            //string Query = $"INSERT INTO patientfrm (PatientId, Name, Age, Gender, Malaria, Covid, Heart, Cold, Address, ContactNo, DoctorsName, VisitDate) " +
-            //   $"VALUES ('{txtpid.Text}', '{txtpname.Text}', '{txtpage.Text}', '{cmbgender.Text}', '{malaria}', '{covid}', '{heart}', '{cold}', " +
-            //   $"'{txtpadd.Text}', '{txtpcontact.Text}', '{txtdrname.Text}', '{datetime.ToString("yyyy-MM-dd")}')";
-
-
-
-
-            //SqlConnection con = new SqlConnection();
-            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
-            //Initial Catalog=dbaugust;Integrated Security=True";
-
             if (!recfnd)
             {
-                //     Query = $"INSERT INTO patientfrm (PatientId, Name, Age, Gender, Malaria, Covid, Heart, Cold, Address, ContactNo, DoctorsName, VisitDate) " +
-                //$"VALUES ('{txtpid.Text}', '{txtpname.Text}', '{txtpage.Text}', '{cmbgender.Text}', '{malaria}', '{covid}', '{heart}', '{cold}', " +
-                //$"'{txtpadd.Text}', '{txtpcontact.Text}', '{txtdrname.Text}', '{datetime.ToString("yyyy-MM-dd")}')";
 
                 d.AddParameters("action", "insert");
             }
             else
             {
 
-                //     Query = $"UPDATE patientfrm set PatientId='{txtpid.Text}', Name='{txtpname.Text}', Age='{txtpage.Text}', Gender='{cmbgender.Text}', " +
-                //         $"Malaria='{malaria}', Covid='{covid}', Heart='{heart}', Cold='{cold}', " +
-                //$"Address='{txtpadd.Text}', ContactNo='{txtpcontact.Text}', DoctorsName='{txtdrname.Text}'," +
-                //$" VisitDate='{datetime.ToString("yyyy-MM-dd")}' where PatientId='{txtpid.Text}'";
-
+              
                 d.AddParameters("action", "update");
             }
 
             try
             {
-                //SqlCommand cmd = new SqlCommand();
-                //cmd.Connection = con;
-                //cmd.CommandText = Query;
-                //cmd.Connection.Open();
-                //int res = cmd.ExecuteNonQuery();
-                //cmd.Connection.Close();
-
+               
                 int res = d.ExcuteQuery("pr_patients");
                 if (res > 0) 
                 {
@@ -266,12 +215,7 @@ namespace DemoWF
         {
             if (MessageBox.Show("Do you want to delete", "PatientDetails", MessageBoxButtons.YesNo) == DialogResult.No)
                 return;
-            // string query = "";
-            //if(recfnd)
-            //{
-            //    query = $"delete from patientfrm where PatientId='{txtpid.Text}'";
-            //}
-            try
+          
             {
                 d.isProCall = true;
                 d.ClearParameters();
