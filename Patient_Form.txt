@@ -1,0 +1,656 @@
+***********************************************************************************************
+
+Patient.cs file 
+
+***********************************************************************************************
+
+using DotNetProject;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace DemoWF
+{
+    public partial class PatientDetails : BaseForm
+    {
+        DAL d = new DAL();
+        bool recfnd = false;
+        public PatientDetails()
+        {
+            InitializeComponent();
+            GetMaxID();
+        }
+
+        public void GetMaxID()
+        {
+            //SqlConnection con = new SqlConnection();
+            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
+            //Initial Catalog=dbaugust;Integrated Security=True";
+
+            try
+            {
+                //con.Open();
+                //SqlCommand cmd = new SqlCommand();
+                //cmd.CommandText = "select max(PatientId)+1 from patientfrm";
+                //cmd.Connection = con;
+                //object obj = cmd.ExecuteScalar();
+                //txtpid.Text = obj.ToString();
+                //con.Close();
+
+               // object MaxID = d.GetID("select max(PatientId)+1 from patientfrm");
+                //txtpid.Text = MaxID.ToString();
+                d.isProCall= true;
+                d.ClearParameters();
+                d.AddParameters("action", "getmax");
+                d.AddParameters("PatientId", "0");
+                object MaxId = d.GetID("pr_patients");
+                d.isProCall = false;
+                txtpid.Text = MaxId + "";
+            }
+            catch (Exception ex) 
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+        private void PatientDetails_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btncancel_Click(object sender, EventArgs e)
+        {
+            ClearControl(txtpid, Controls);
+            // txtpadd.Clear();
+            //datetime.Value = DateTime.Now;
+            txtpid.Focus();
+            GetMaxID();
+        }
+
+        private void txtpid_Validating(object sender, CancelEventArgs e)
+        {
+            //SqlConnection con = new SqlConnection();
+            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
+            //Initial Catalog=dbaugust;Integrated Security=True";
+
+            try
+            {
+                //con.Open();
+                //SqlCommand cmd = new SqlCommand();
+                //cmd.CommandText = "select * from patientfrm where PatientId=" + txtpid.Text;
+                //cmd.Connection = con;
+                //SqlDataReader rdr = cmd.ExecuteReader();
+                SqlDataReader rdr = d.GetReader("select * from patient_frm where PatientId="+txtpid.Text);
+                if (rdr != null && rdr.HasRows)
+                {
+                    recfnd = true;
+                    rdr.Read();
+                    txtpname.Text = rdr["P_Name"].ToString();
+                    txtpage.Text = rdr["Age"].ToString();
+                    cmbgender.Text = rdr["Gender"].ToString();
+                    //  IsAtLeastOneDiseaseChecked();
+                    /*if (rdr["Malaria"].ToString() == "Y")
+                    {
+                        chkmalaria.Checked = true;
+                    }
+                    else 
+                    {
+                        chkmalaria.Checked = false;
+                    }
+                    if (rdr["Covid"].ToString() == "Y")
+                    {
+                        chkcovid.Checked = true;
+                    }
+                    else
+                    {
+                        chkcovid.Checked = false;
+                    }
+                    if (rdr["Heart"].ToString() == "Y")
+                    {
+                        chkheart.Checked = true;
+                    }
+                    else
+                    {
+                        chkheart.Checked = false;
+                    }
+                    if (rdr["Cold"].ToString() == "Y")
+                    {
+                        chkcold.Checked = true;
+                    }
+                    else
+                    {
+                        chkcold.Checked = false;
+                    } */
+                    SetCheckBoxFromDataReader(chkmalaria, "Malaria", rdr);
+                    SetCheckBoxFromDataReader(chkcovid, "Covid", rdr);
+                    SetCheckBoxFromDataReader(chkheart, "Heart", rdr);
+                    SetCheckBoxFromDataReader(chkcold, "Cold", rdr);
+
+                    txtpadd.Text = rdr["P_Address"].ToString();
+                    txtpcontact.Text = rdr["ContactNo"].ToString();
+                    txtdrname.Text = rdr["DoctorsName"].ToString();
+                    datetime.Text = rdr["VisitDate"].ToString();
+
+                }
+                else 
+                {
+                    recfnd = false;
+                    txtpname.Text = "";
+                    txtpage.Text = "";
+                    cmbgender.Text = "";
+                    chkmalaria.Checked = false;
+                    chkcovid.Checked = false;
+                    chkheart.Checked = false;
+                    chkcold.Checked = false;
+                    txtpadd.Text = "";
+                    txtpcontact.Text = "";
+                    txtdrname.Text = "";
+                    datetime.Text = "";
+
+                }
+                //con.Close();
+                rdr.Close();
+            }
+            catch (Exception ex)
+            {   
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private void SetCheckBoxFromDataReader(CheckBox checkBox, string columnName, SqlDataReader rdr)
+        {
+            if (rdr[columnName].ToString() == "Y")
+            {
+                checkBox.Checked = true;
+            }
+            else
+            {
+                checkBox.Checked = false;
+            }
+        }
+
+        private void btnsave_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Do you want to save?", "PatientDetails", MessageBoxButtons.YesNo) == DialogResult.No)
+                return;
+            string malaria = chkmalaria.Checked ? "Y" : "N";
+            string covid = chkcovid.Checked ? "Y" : "N";
+            string heart = chkheart.Checked ? "Y" : "N";
+            string cold = chkcold.Checked ? "Y" : "N";
+            //DateTime datetime = DateTime.Now.Date;
+            DateTime selectedDate = datetime.Value;
+
+            d.isProCall = true;
+            d.ClearParameters();
+            d.AddParameters("PatientId", txtpid.Text);
+            d.AddParameters("P_Name", txtpname.Text);
+            d.AddParameters("Age", txtpage.Text);
+            d.AddParameters("Gender", cmbgender.Text);
+            d.AddParameters("Malaria", malaria);
+            d.AddParameters("Covid", covid);
+            d.AddParameters("Heart", heart);
+            d.AddParameters("Cold", cold);
+            d.AddParameters("P_Address", txtpadd.Text);
+            d.AddParameters("ContactNo", txtpcontact.Text);
+            d.AddParameters("DoctorsName", txtdrname.Text);
+            d.AddParameters("VisitDate", selectedDate.ToString("yyyy-MM-dd"));
+
+
+            // string Query = "";
+            // Assigning the current date without the time
+
+
+            //string Query = $"INSERT INTO patientfrm (PatientId, Name, Age, Gender, Malaria, Covid, Heart, Cold, Address, ContactNo, DoctorsName, VisitDate) " +
+            //   $"VALUES ('{txtpid.Text}', '{txtpname.Text}', '{txtpage.Text}', '{cmbgender.Text}', '{malaria}', '{covid}', '{heart}', '{cold}', " +
+            //   $"'{txtpadd.Text}', '{txtpcontact.Text}', '{txtdrname.Text}', '{datetime.ToString("yyyy-MM-dd")}')";
+
+
+
+
+            //SqlConnection con = new SqlConnection();
+            //con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
+            //Initial Catalog=dbaugust;Integrated Security=True";
+
+            if (!recfnd)
+            {
+                //     Query = $"INSERT INTO patientfrm (PatientId, Name, Age, Gender, Malaria, Covid, Heart, Cold, Address, ContactNo, DoctorsName, VisitDate) " +
+                //$"VALUES ('{txtpid.Text}', '{txtpname.Text}', '{txtpage.Text}', '{cmbgender.Text}', '{malaria}', '{covid}', '{heart}', '{cold}', " +
+                //$"'{txtpadd.Text}', '{txtpcontact.Text}', '{txtdrname.Text}', '{datetime.ToString("yyyy-MM-dd")}')";
+
+                d.AddParameters("action", "insert");
+            }
+            else
+            {
+
+                //     Query = $"UPDATE patientfrm set PatientId='{txtpid.Text}', Name='{txtpname.Text}', Age='{txtpage.Text}', Gender='{cmbgender.Text}', " +
+                //         $"Malaria='{malaria}', Covid='{covid}', Heart='{heart}', Cold='{cold}', " +
+                //$"Address='{txtpadd.Text}', ContactNo='{txtpcontact.Text}', DoctorsName='{txtdrname.Text}'," +
+                //$" VisitDate='{datetime.ToString("yyyy-MM-dd")}' where PatientId='{txtpid.Text}'";
+
+                d.AddParameters("action", "update");
+            }
+
+            try
+            {
+                //SqlCommand cmd = new SqlCommand();
+                //cmd.Connection = con;
+                //cmd.CommandText = Query;
+                //cmd.Connection.Open();
+                //int res = cmd.ExecuteNonQuery();
+                //cmd.Connection.Close();
+
+                int res = d.ExcuteQuery("pr_patients");
+                if (res > 0) 
+                {
+                    recfnd = false;
+                     MessageBox.Show("Record Saved Successfully!!");
+                }
+                else
+                {
+                    MessageBox.Show("Record not Saved");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btndelete_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Do you want to delete", "PatientDetails", MessageBoxButtons.YesNo) == DialogResult.No)
+                return;
+            // string query = "";
+            //if(recfnd)
+            //{
+            //    query = $"delete from patientfrm where PatientId='{txtpid.Text}'";
+            //}
+            try
+            {
+                d.isProCall = true;
+                d.ClearParameters();
+                d.AddParameters("action", "delete");
+                d.AddParameters("PatientId", txtpid.Text);
+                
+                int res = d.ExcuteQuery("pr_patients");
+                if(res > 0)
+                {
+                    MessageBox.Show("Record deleted Successfully !!");
+                    ClearControl(txtpid, Controls);
+                    txtpid.Focus();
+                    GetMaxID();
+                    recfnd = false;
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+    }
+}
+
+
+*****************************************************************************************************************************
+
+stored procedure............
+
+****************************************************************************************************************************
+
+USE [dbaugust]
+GO
+/****** Object:  StoredProcedure [dbo].[pr_patients]    Script Date: 12/7/2023 10:57:21 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[pr_patients]
+(
+	@PatientId int,
+	@P_Name varchar(255)='',
+	@Age int=0,
+	@Gender varchar(20)='',
+	@Malaria char(1)='Y',
+	@Covid char(1)='Y',
+	@Heart char(1)='Y',
+	@Cold char(1)='Y',
+	@P_Address varchar(255)='',
+	@ContactNo bigint=0,
+	@DoctorsName varchar(255)='',
+	@VisitDate date='',
+	@action varchar(30)
+)
+	
+AS
+BEGIN
+	if @action='select'
+	begin 
+	if @PatientId=0
+	select * from patient_frm;
+	else 
+	select * from patient_frm where PatientId=@PatientId;
+	end
+
+	if @action='insert'
+	begin
+	insert into patient_frm
+	select @PatientId,@P_Name,@Age,@Gender,@Malaria,@Covid,@Heart,@Cold,@P_Address,@ContactNo,@DoctorsName,@VisitDate;
+	end 
+
+	if @action='update'
+	begin 
+	update patient_frm set 
+	PatientId=@PatientId,
+	P_Name=@P_Name,
+	Age=@Age,
+	Gender=@Gender,
+	Malaria=@Malaria,
+	Covid=@Covid,
+	Heart=@Heart, 
+	Cold=@Cold, 
+	P_Address=@P_Address, 
+	ContactNo=@ContactNo, 
+	DoctorsName=@DoctorsName, 
+	VisitDate=@VisitDate where PatientId = @PatientId;
+
+	end 
+
+	if @action='delete'
+	begin
+	delete from patient_frm where PatientId=@PatientId;
+	end
+
+	if @action='getmax'
+	begin
+	select max(PatientId)+1 from patient_frm;
+	end
+END
+
+**************************************************************************************************************************************
+
+Database logic 
+
+**************************************************************************************************************************************
+
+use dbaugust;
+
+CREATE TABLE patient_frm (
+    PatientId INT PRIMARY KEY,
+    P_Name VARCHAR(255),
+    Age INT,
+    Gender VARCHAR(20),
+    Malaria char(1),
+    Covid char(1),
+    Heart char(1),
+    Cold char(1),
+    P_Address VARCHAR(255),
+    ContactNo BIGINT,
+    DoctorsName VARCHAR(255),
+    VisitDate DATE
+);
+
+INSERT INTO patient_frm (PatientId, P_Name, Age, Gender, Malaria, Covid, Heart, Cold, P_Address, ContactNo, DoctorsName, VisitDate)
+VALUES 
+    (1,'Nik Patankar', 30, 'Male', 'Y', 'N', 'Y', 'Y', '123 Main St, Satara', '9898564215', 'Dr. Smith', '2023-01-01'),
+    (2,'Tejas Dagade', 25, 'Female', 'Y', 'N', 'N', 'Y', '456 Near Police St, Baramati', '9876252512', 'Dr. Johnson', '2023-02-15'),
+    (3,'MS Dhoni', 40, 'Male', 'Y', 'N', 'N', 'N', '789 Pine St, Zarakhand', '7272454563', 'Dr. Davis', '2023-03-10'),
+    (4,'Rohit Sharma', 35, 'Female', 'N', 'N', 'Y', 'Y', '321 CST, Mumbai', '8535363214', 'Dr. Wilson', '2023-04-05'),
+    (5,'Ram Telor', 28, 'Trans-Gender', 'N', 'Y', 'Y', 'Y', '555 Khau Galli, Delhi', '7070154265', 'Dr. Brown', '2023-05-20');
+
+**********************************************************************************************************************************************
+
+DAL file 
+
+**********************************************************************************************************************************************
+
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DemoWF
+{
+    public class DAL
+    {
+        public bool isProCall = false;
+        List<SqlParameter> paralist = new List<SqlParameter>();
+        //public ConnectionState State=ConnectionState.Closed;
+
+        public SqlConnection GetConnection()
+        {
+            /* SqlConnection con = new SqlConnection();
+             con.ConnectionString = @"Data Source=NIKU\SQLEXPRESS;
+             Initial Catalog=dbaugust;Integrated Security=True"; */
+            string ConnectionString = ConfigurationManager.AppSettings["SqlConnectionString"];
+            SqlConnection con = new SqlConnection();
+            con.ConnectionString = ConnectionString;
+            return con;
+        }
+        public void ClearParameters()
+        {
+            paralist.Clear();
+        }
+        public void AddParameters(string paraname, string value)
+        {
+            paralist.Add(new SqlParameter(paraname, value));
+        }
+        public SqlCommand GetCommand(string Query)
+        {
+            SqlCommand cmd = new SqlCommand();
+            if (isProCall)
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddRange(paralist.ToArray());
+            }
+            else
+            {
+                cmd.CommandType = CommandType.Text;
+            }
+            cmd.CommandText = Query;
+            cmd.Connection = GetConnection();
+            return cmd;
+        }
+        private DataSet GetTables(string Query)
+        {
+            SqlDataAdapter da = new SqlDataAdapter(GetCommand(Query));
+            DataSet ds = new DataSet();
+            da.Fill(ds);
+            return ds;
+        }
+        private DataTable GetTable(string Query) 
+        {
+           DataTable dt = new DataTable();
+           SqlCommand cmd = GetCommand(Query);
+           cmd.Connection.Open();
+
+            SqlDataReader rdr = cmd.ExecuteReader();
+            if(rdr!=null && rdr.HasRows)
+                dt.Load(rdr);
+
+            cmd.Connection.Close();
+            return dt;
+        }
+        public object GetID(string Query) 
+        {
+            SqlCommand cmd = GetCommand(Query);
+            cmd.Connection.Open();
+
+            object retval = cmd.ExecuteScalar();
+            cmd.Connection.Close();
+
+            return retval;
+        }
+        public SqlDataReader GetReader(string Query) 
+        {
+            SqlCommand cmd = GetCommand(Query);
+            cmd.Connection.Open();
+            SqlDataReader rdr = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+            return rdr;
+        }
+        public int ExcuteQuery (string Query)
+        {
+            SqlCommand cmd = GetCommand(Query);
+            cmd.Connection.Open();
+
+            int retval = cmd.ExecuteNonQuery();
+            cmd.Connection.Close();
+
+            return retval;
+        }
+
+    }
+}
+
+*************************************************************************************************************************************************************
+
+Base form 
+
+*************************************************************************************************************************************************************
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace DemoWF
+{
+    public partial class BaseForm : Form
+    {
+        public BaseForm()
+        {
+            InitializeComponent();
+        }
+        public void Control_Enter(object sender, EventArgs e)
+        {
+            Control ctrl = (Control)sender;
+            ctrl.BackColor = Color.Yellow;
+        }
+
+        public void Control_Leave(object sender, EventArgs e)
+        {
+            Control ctrl = (Control)sender;
+            ctrl.BackColor = Color.White;
+        }
+        public void Control_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            Control ctrl = (Control)sender;
+            if (e.KeyChar == 13)
+            {
+                SendKeys.Send("{TAB}");
+            }
+            else if (e.KeyChar == 27)
+            {
+                SendKeys.Send("+{TAB}");
+            }
+            if (ctrl.Tag != null && ctrl.Tag.ToString() == "int")
+            {
+                if (!(e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == '\b'))
+                {
+                    e.KeyChar = (char)0;
+                }
+            }
+            else if (ctrl.Tag != null && ctrl.Tag.ToString() == "string")
+            {
+                string validstr = "abcdefghijklmnopqrstuvwxyz @-\b./";
+                if (!(validstr.Contains(e.KeyChar.ToString().ToLower())))
+                {
+                    e.KeyChar = (char)0;
+                }
+                if (ctrl.Text.Split(' ').Length > 2 && e.KeyChar == ' ')
+                    e.KeyChar = (char)0;
+
+                if (ctrl.Text.Length > 0 && ctrl.Text.Substring
+                    (ctrl.Text.Length - 1) == " " && e.KeyChar == ' ')
+                    e.KeyChar = (char)0;
+            }
+            else if (ctrl.Tag != null && ctrl.Tag.ToString() == "double")
+            {
+                if (!(e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == '.' ||
+                    e.KeyChar == '\b'))
+                {
+                    e.KeyChar = (char)0;
+                }
+                if (ctrl.Text.Contains('.') && e.KeyChar == '.')
+                    e.KeyChar = (char)0;
+                int dotpos = ctrl.Text.IndexOf('.');
+                if (dotpos >= 0 && e.KeyChar != '\b')
+                {
+                    if (ctrl.Text.Substring(dotpos).Length > 2)
+                        e.KeyChar = (char)0;
+                }
+            }
+        }
+        public void button3_Click(object sender, EventArgs e)
+        {
+            ClearForm(this);
+        }
+
+        public void ClearForm(Control ctrl)
+        {
+            foreach (Control c in ctrl.Controls)
+            {
+                if (c is TextBox txtBox)
+                {
+                    txtBox.Text = string.Empty;
+                }
+                else if (c is ComboBox comboBox)
+                {
+                    comboBox.SelectedIndex = -1;
+                }
+            }
+        }
+        public void ClearControl(Control FocusControl, Control.ControlCollection ctrls,
+             bool ClearFocusControl = true)
+
+        {
+            foreach (Control item in ctrls)
+            {
+                if (item.Tag != null)
+                    item.Text = "";
+                if (item.GetType().Name == "ComboBox")
+                {
+                    ComboBox cmb = (ComboBox)item;
+                    cmb.SelectedIndex = -1;
+                }
+                else if (item.GetType().Name == "RichTextBox")
+                {
+                    RichTextBox rtbx = (RichTextBox)item;
+                    rtbx.Clear();
+                }
+                else if (item.GetType().Name == "DateTimePicker")
+                {
+                    DateTimePicker dtp = (DateTimePicker)item;
+                    dtp.Value = DateTime.Now;
+                }
+                else if (item is CheckBox)
+                {
+                    ((CheckBox)item).Checked = false;
+                }
+
+            }
+            FocusControl.Focus();
+        }
+
+        private void BaseForm_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
+
+*******************************************************************************************************************************************************************
